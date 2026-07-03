@@ -35,18 +35,15 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/sadid56/arch-optimize.git
-   cd arch-optimize
-   ```
-
+   git clone https://github.com/sadid56/artune
 2. **Make the script executable:**
    ```bash
-   chmod +x arch-optimize.sh
+   chmod +x artune
    ```
 
 3. **Apply the optimizations:**
    ```bash
-   sudo ./arch-optimize.sh
+   sudo ./artune
    ```
 
 4. **Reboot the system** to fully apply bootloader (GRUB) changes and initialize ZRAM swap:
@@ -63,13 +60,13 @@ The script supports three modes: **Apply (default)**, **Verify**, and **Rollback
 ### 🔍 1. Verify Active Settings
 You can check the current status of all optimizations at any time without making changes:
 ```bash
-sudo ./arch-optimize.sh --verify
+sudo ./artune --verify
 ```
 
 ### 🔄 2. Roll Back Changes
 If you wish to completely revert all modifications made by this script and restore your system to its vanilla state:
 ```bash
-sudo ./arch-optimize.sh --rollback
+sudo ./artune --rollback
 sudo reboot
 ```
 

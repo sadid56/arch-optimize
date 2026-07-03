@@ -1,16 +1,16 @@
 # Maintainer: Sadid <your-email@example.com>
-pkgname=arch-optimize-git
-_pkgname=arch-optimize
-pkgver=1.0.0
+pkgname=artune-git
+_pkgname=artune-git
+pkgver=r4.gda67467
 pkgrel=1
-pkgdesc="Automated script to optimize Arch Linux for low-latency desktop use, gaming, and real-time audio workloads"
+pkgdesc="Automated script to optimize Arch Linux for low-latency desktop use, gaming, and real-time audio workloads (artune)"
 arch=('any')
-url="https://github.com/sadid56/arch-optimize"
+url="https://github.com/sadid56/artune"
 license=('GPL3')
 depends=('bash' 'zram-generator' 'iproute2' 'pciutils' 'linux-zen' 'linux-zen-headers' 'ananicy-cpp')
 makedepends=('git')
-provides=("$_pkgname")
-conflicts=("$_pkgname")
+provides=("artune")
+conflicts=("artune")
 source=("git+${url}.git")
 sha256sums=('SKIP')
 
@@ -23,13 +23,13 @@ package() {
   cd "$srcdir/$_pkgname"
   
   # Install the main executable script
-  install -Dm755 arch-optimize.sh "$pkgdir/usr/bin/arch-optimize"
+  install -Dm755 artune "$pkgdir/usr/bin/artune"
   
   # Install module scripts
-  install -d "$pkgdir/usr/share/arch-optimize/modules"
-  install -m644 modules/*.sh "$pkgdir/usr/share/arch-optimize/modules/"
+  install -d "$pkgdir/usr/share/artune/modules"
+  install -m644 modules/*.sh "$pkgdir/usr/share/artune/modules/"
   
   # Install config templates
-  install -d "$pkgdir/usr/share/arch-optimize/config"
-  install -m644 config/* "$pkgdir/usr/share/arch-optimize/config/"
+  install -d "$pkgdir/usr/share/artune/config"
+  install -m644 config/* "$pkgdir/usr/share/artune/config/"
 }

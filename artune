@@ -36,8 +36,8 @@ if [[ -d "$SCRIPT_DIR/modules" ]]; then
     MODULES_DIR="$SCRIPT_DIR/modules"
     CONFIG_DIR="$SCRIPT_DIR/config"
 else
-    MODULES_DIR="/usr/share/arch-optimize/modules"
-    CONFIG_DIR="/usr/share/arch-optimize/config"
+    MODULES_DIR="/usr/share/artune/modules"
+    CONFIG_DIR="/usr/share/artune/config"
 fi
 
 # Source all module scripts
@@ -181,5 +181,5 @@ else
 fi
 
 echo ""
-echo -e "  Verify anytime with:   ${CYAN}sudo ./arch-optimize.sh --verify${NC}"
-echo -e "  Roll back everything:  ${CYAN}sudo ./arch-optimize.sh --rollback${NC}"
+echo -e "  Verify anytime with:   ${CYAN}sudo artune --verify${NC}"
+echo -e "  Roll back everything:  ${CYAN}sudo artune --rollback${NC}"

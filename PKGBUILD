@@ -1,7 +1,7 @@
 # Maintainer: Sadid <your-email@example.com>
 pkgname=artune-git
 _pkgname=artune
-pkgver=r7.gf2925ab
+pkgver=r8.g046c4c7
 pkgrel=1
 pkgdesc="Automated script to optimize Arch Linux for low-latency desktop use, gaming, and real-time audio workloads (artune)"
 arch=('any')

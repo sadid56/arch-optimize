@@ -13,8 +13,8 @@ apply_zram() {
     if [[ -f "$ZRAM_CONF" ]]; then
         skip "$ZRAM_CONF"
     else
-        if [[ -f "$SCRIPT_DIR/config/zram-generator.conf" ]]; then
-            cp -f "$SCRIPT_DIR/config/zram-generator.conf" "$ZRAM_CONF"
+        if [[ -f "$CONFIG_DIR/zram-generator.conf" ]]; then
+            cp -f "$CONFIG_DIR/zram-generator.conf" "$ZRAM_CONF"
             ok "Created $ZRAM_CONF"
         else
             warn "config/zram-generator.conf template not found"

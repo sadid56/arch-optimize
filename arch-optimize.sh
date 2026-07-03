@@ -31,8 +31,17 @@ PHYSICAL_DEVS=${PHYSICAL_DEVS:-nvme0n1}
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
+# Determine directories (supports local running and system-wide package install)
+if [[ -d "$SCRIPT_DIR/modules" ]]; then
+    MODULES_DIR="$SCRIPT_DIR/modules"
+    CONFIG_DIR="$SCRIPT_DIR/config"
+else
+    MODULES_DIR="/usr/share/arch-optimize/modules"
+    CONFIG_DIR="/usr/share/arch-optimize/config"
+fi
+
 # Source all module scripts
-for module_script in "$SCRIPT_DIR"/modules/*.sh; do
+for module_script in "$MODULES_DIR"/*.sh; do
     if [[ -f "$module_script" ]]; then
         source "$module_script"
     fi

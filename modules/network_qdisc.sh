@@ -12,8 +12,8 @@ apply_network_qdisc() {
     if [[ -f "$NETQDISC_SERVICE" ]]; then
         skip "$NETQDISC_SERVICE"
     else
-        if [[ -f "$SCRIPT_DIR/config/network-qdisc.service" ]]; then
-            cp -f "$SCRIPT_DIR/config/network-qdisc.service" "$NETQDISC_SERVICE"
+        if [[ -f "$CONFIG_DIR/network-qdisc.service" ]]; then
+            cp -f "$CONFIG_DIR/network-qdisc.service" "$NETQDISC_SERVICE"
             systemctl daemon-reload
             systemctl enable --now network-qdisc.service
             ok "Created and enabled network-qdisc.service"

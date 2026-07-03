@@ -6,8 +6,8 @@ apply_thp() {
     if [[ -f "$THP_CONF" ]]; then
         skip "$THP_CONF"
     else
-        if [[ -f "$SCRIPT_DIR/config/thp.conf" ]]; then
-            cp -f "$SCRIPT_DIR/config/thp.conf" "$THP_CONF"
+        if [[ -f "$CONFIG_DIR/thp.conf" ]]; then
+            cp -f "$CONFIG_DIR/thp.conf" "$THP_CONF"
             systemd-tmpfiles --create
             ok "Created $THP_CONF and applied"
         else

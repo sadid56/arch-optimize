@@ -6,8 +6,8 @@ apply_io_scheduler() {
     if [[ -f "$IOSCHED_RULES" ]]; then
         skip "$IOSCHED_RULES"
     else
-        if [[ -f "$SCRIPT_DIR/config/60-ioschedulers.rules" ]]; then
-            cp -f "$SCRIPT_DIR/config/60-ioschedulers.rules" "$IOSCHED_RULES"
+        if [[ -f "$CONFIG_DIR/60-ioschedulers.rules" ]]; then
+            cp -f "$CONFIG_DIR/60-ioschedulers.rules" "$IOSCHED_RULES"
             udevadm control --reload
             udevadm trigger
             ok "Created $IOSCHED_RULES and reloaded udev"

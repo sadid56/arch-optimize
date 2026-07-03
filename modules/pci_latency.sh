@@ -12,8 +12,8 @@ apply_pci_latency() {
     if [[ -f "$PCI_SCRIPT" ]]; then
         skip "$PCI_SCRIPT"
     else
-        if [[ -f "$SCRIPT_DIR/config/pci-latency.sh" ]]; then
-            cp -f "$SCRIPT_DIR/config/pci-latency.sh" "$PCI_SCRIPT"
+        if [[ -f "$CONFIG_DIR/pci-latency.sh" ]]; then
+            cp -f "$CONFIG_DIR/pci-latency.sh" "$PCI_SCRIPT"
             chmod +x "$PCI_SCRIPT"
             ok "Created $PCI_SCRIPT"
         else
@@ -25,8 +25,8 @@ apply_pci_latency() {
     if [[ -f "$PCI_SERVICE" ]]; then
         skip "$PCI_SERVICE"
     else
-        if [[ -f "$SCRIPT_DIR/config/pci-latency.service" ]]; then
-            cp -f "$SCRIPT_DIR/config/pci-latency.service" "$PCI_SERVICE"
+        if [[ -f "$CONFIG_DIR/pci-latency.service" ]]; then
+            cp -f "$CONFIG_DIR/pci-latency.service" "$PCI_SERVICE"
             systemctl daemon-reload
             systemctl enable --now pci-latency.service
             ok "Created and enabled pci-latency.service"

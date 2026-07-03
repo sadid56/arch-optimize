@@ -6,8 +6,8 @@ apply_sysctl() {
     if [[ -f "$SYSCTL_CONF" ]]; then
         skip "$SYSCTL_CONF"
     else
-        if [[ -f "$SCRIPT_DIR/config/70-performance-tuning.conf" ]]; then
-            cp -f "$SCRIPT_DIR/config/70-performance-tuning.conf" "$SYSCTL_CONF"
+        if [[ -f "$CONFIG_DIR/70-performance-tuning.conf" ]]; then
+            cp -f "$CONFIG_DIR/70-performance-tuning.conf" "$SYSCTL_CONF"
             sysctl -p "$SYSCTL_CONF" > /dev/null
             ok "Created and applied $SYSCTL_CONF"
         else

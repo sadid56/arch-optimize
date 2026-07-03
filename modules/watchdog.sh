@@ -6,8 +6,8 @@ apply_watchdog() {
     if [[ -f "$WATCHDOG_CONF" ]]; then
         skip "$WATCHDOG_CONF"
     else
-        if [[ -f "$SCRIPT_DIR/config/disable-watchdog.conf" ]]; then
-            cp -f "$SCRIPT_DIR/config/disable-watchdog.conf" "$WATCHDOG_CONF"
+        if [[ -f "$CONFIG_DIR/disable-watchdog.conf" ]]; then
+            cp -f "$CONFIG_DIR/disable-watchdog.conf" "$WATCHDOG_CONF"
             ok "Created $WATCHDOG_CONF"
             NEED_REINITRAMFS=1
         else

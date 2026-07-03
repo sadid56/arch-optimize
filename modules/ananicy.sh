@@ -10,12 +10,12 @@ apply_ananicy() {
 
     # Copy config and rules
     if [[ -d "/etc/ananicy.d" ]]; then
-        if [[ -f "$SCRIPT_DIR/config/ananicy.conf" ]]; then
-            cp -f "$SCRIPT_DIR/config/ananicy.conf" /etc/ananicy.d/ananicy.conf
+        if [[ -f "$CONFIG_DIR/ananicy.conf" ]]; then
+            cp -f "$CONFIG_DIR/ananicy.conf" /etc/ananicy.d/ananicy.conf
             ok "Copied ananicy.conf to /etc/ananicy.d/"
         fi
-        if [[ -f "$SCRIPT_DIR/config/development.rules" ]]; then
-            cp -f "$SCRIPT_DIR/config/development.rules" /etc/ananicy.d/development.rules
+        if [[ -f "$CONFIG_DIR/development.rules" ]]; then
+            cp -f "$CONFIG_DIR/development.rules" /etc/ananicy.d/development.rules
             ok "Copied development.rules to /etc/ananicy.d/"
         fi
     else

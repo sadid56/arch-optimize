@@ -6,8 +6,8 @@ apply_cpu_dma_latency() {
     if [[ -f "$DMA_RULE" ]]; then
         skip "$DMA_RULE"
     else
-        if [[ -f "$SCRIPT_DIR/config/99-cpu-dma-latency.rules" ]]; then
-            cp -f "$SCRIPT_DIR/config/99-cpu-dma-latency.rules" "$DMA_RULE"
+        if [[ -f "$CONFIG_DIR/99-cpu-dma-latency.rules" ]]; then
+            cp -f "$CONFIG_DIR/99-cpu-dma-latency.rules" "$DMA_RULE"
             udevadm control --reload
             udevadm trigger
             ok "Created $DMA_RULE"

@@ -36,6 +36,7 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/sadid56/artune
+   ```
 2. **Make the script executable:**
    ```bash
    chmod +x artune

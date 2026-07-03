@@ -31,20 +31,20 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 * **Permissions**: Must be run with `sudo` / root privileges.
 * **Dependencies**: The script will automatically install necessary packages (`zram-generator`, `iproute2`, `pciutils`, `linux-zen`, `linux-zen-headers`, and `ananicy-cpp`) via `pacman` if they are missing.
 
-### 📥 Installation & Execution
+### 📥 Installation & Execution manually 
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/sadid56/artune
+   git clone https://github.com/sadid56/artune.git
    ```
 2. **Make the script executable:**
    ```bash
-   chmod +x artune
+   chmod +x artune.sh
    ```
 
 3. **Apply the optimizations:**
    ```bash
-   sudo ./artune
+   sudo ./artune.sh
    ```
 
 4. **Reboot the system** to fully apply bootloader (GRUB) changes and initialize ZRAM swap:
@@ -61,13 +61,13 @@ The script supports three modes: **Apply (default)**, **Verify**, and **Rollback
 ### 🔍 1. Verify Active Settings
 You can check the current status of all optimizations at any time without making changes:
 ```bash
-sudo ./artune --verify
+sudo ./artune.sh --verify
 ```
 
 ### 🔄 2. Roll Back Changes
 If you wish to completely revert all modifications made by this script and restore your system to its vanilla state:
 ```bash
-sudo ./artune --rollback
+sudo ./artune.sh --rollback
 sudo reboot
 ```
 

@@ -10,7 +10,7 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 
 | Optimization | Target Area | Description |
 | :--- | :--- | :--- |
-| **Sysctl Tuning** | CPU, RAM & Net | Tweaks swappiness (`100` for ZRAM), dirty page limits, scheduling migration costs, and network backlog buffers. |
+| **Sysctl Tuning** | CPU, RAM & Net | Tweaks swappiness (`100` for ZRAM), dirty page limits, scheduling migration costs, and enables **BBR congestion control** with **FQ pacing**. |
 | **ZRAM Swap** | Virtual Memory | Installs and configures `zram-generator` with `zstd` compression, expanding effective RAM. |
 | **I/O Scheduler** | Storage | Configures udev rules: `kyber` for NVMe SSDs, `mq-deadline` for SATA SSDs, and `bfq` for traditional HDDs. |
 | **Disable Watchdogs** | CPU interrupts | Blacklists hardware watchdog modules to prevent periodic CPU interrupts and improve performance. |
@@ -18,6 +18,7 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 | **Network QoS** | Network | Implements a systemd service that sets the queue discipline to `fq_codel` across all network interfaces to eliminate bufferbloat. |
 | **PCI Latency** | Bus responsiveness | Adjusts PCI latency timers via a startup service to prioritize multimedia/audio devices. |
 | **CPU DMA Latency** | Real-Time Audio | Authorizes the `audio` group to write to `/dev/cpu_dma_latency` to disable deep C-states for real-time tasks. |
+| **Zen Kernel** | CPU & Scheduling | Auto-installs `linux-zen` and headers to provide a responsiveness-oriented scheduler and lower desktop latency. |
 
 ---
 
@@ -27,7 +28,7 @@ This script applies system-level tweaks spanning virtual memory, storage I/O, ne
 
 * **OS**: Arch Linux (or Arch-based distributions).
 * **Permissions**: Must be run with `sudo` / root privileges.
-* **Dependencies**: The script will automatically install necessary packages (`zram-generator`, `iproute2`, and `pciutils`) via `pacman` if they are missing.
+* **Dependencies**: The script will automatically install necessary packages (`zram-generator`, `iproute2`, `pciutils`, `linux-zen`, and `linux-zen-headers`) via `pacman` if they are missing.
 
 ### 📥 Installation & Execution
 

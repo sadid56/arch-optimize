@@ -25,10 +25,9 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-# Detect primary NVMe device dynamically (fallback to nvme0n1)
-NVME_DEV=$(lsblk -dno NAME | grep -m1 '^nvme' || true)
-NVME_DEV=${NVME_DEV:-nvme0n1}
-NVME_SCHED_PATH="/sys/block/${NVME_DEV}/queue/scheduler"
+# Detect physical disks dynamically (NVMe, SATA SSDs, HDDs, etc.)
+PHYSICAL_DEVS=$(lsblk -dno NAME,TYPE | awk '$2=="disk"{print $1}' || true)
+PHYSICAL_DEVS=${PHYSICAL_DEVS:-nvme0n1}
 
 # ==================================================================
 # ROLLBACK MODE
@@ -60,10 +59,13 @@ rollback() {
     systemctl stop systemd-zram-setup@zram0 2>/dev/null || true
 
     if grep -q "nowatchdog" /etc/default/grub 2>/dev/null; then
-        sed -i 's/nowatchdog //' /etc/default/grub
+        sed -i -E 's/\bnowatchdog[[:space:]]*//' /etc/default/grub
         ok "Removed nowatchdog from GRUB_CMDLINE_LINUX_DEFAULT"
         NEED_GRUB=1
     fi
+
+    # Restore default kernel parameters from remaining sysctl configurations
+    sysctl --system 2>/dev/null || true
 
     systemctl daemon-reload
     udevadm control --reload 2>/dev/null || true
@@ -93,6 +95,10 @@ rollback() {
 verify() {
     header "OPTIMIZATION VERIFICATION"
 
+    echo -e "${BOLD}${CYAN}Kernel Version:${NC}"
+    echo -e "  Running kernel: ${YELLOW}$(uname -r)${NC}"
+
+    echo ""
     echo -e "${BOLD}${CYAN}SYSCTL Settings:${NC}"
     echo -e "  vm.swappiness: ${YELLOW}$(sysctl -n vm.swappiness)${NC}"
     echo -e "  kernel.nmi_watchdog: ${YELLOW}$(sysctl -n kernel.nmi_watchdog)${NC}"
@@ -104,16 +110,19 @@ verify() {
     [[ -n "$zram_out" ]] && echo -e "  ${YELLOW}${zram_out}${NC}" || warn "No ZRAM device active"
 
     echo ""
-    echo -e "${BOLD}${CYAN}I/O Scheduler (${NVME_DEV}):${NC}"
-    if [[ -f "$NVME_SCHED_PATH" ]]; then
-        echo -e "  ${YELLOW}$(cat "$NVME_SCHED_PATH")${NC}"
-    else
-        warn "$NVME_DEV not found"
-    fi
+    echo -e "${BOLD}${CYAN}I/O Schedulers:${NC}"
+    for dev in $PHYSICAL_DEVS; do
+        sched_path="/sys/block/${dev}/queue/scheduler"
+        if [[ -f "$sched_path" ]]; then
+            echo -e "  ${dev}: ${YELLOW}$(cat "$sched_path")${NC}"
+        else
+            warn "${dev} not found"
+        fi
+    done
 
     echo ""
     echo -e "${BOLD}${CYAN}Watchdog Status:${NC}"
-    watchdog_out=$(lsmod | grep -E "sp5100|iTCO" || true)
+    watchdog_out=$(lsmod | grep -E "sp5100|iTCO|wdat" || true)
     [[ -n "$watchdog_out" ]] && echo -e "  ${YELLOW}${watchdog_out}${NC}" || ok "Watchdogs disabled"
 
     echo ""
@@ -155,7 +164,7 @@ header "PRE-FLIGHT SYSTEM CHECK"
 info "CPU: $(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | sed 's/^ //')"
 info "RAM: $(free -h | awk '/^Mem:/{print $2}')"
 info "Storage: $(lsblk -dno NAME,SIZE,TYPE | grep -v loop)"
-info "NVMe device detected: ${NVME_DEV}"
+info "Physical disks detected: $(echo $PHYSICAL_DEVS | tr '\n' ' ')"
 
 # --- STEP 1: Sysctl ---
 header "STEP 1: Sysctl Optimizations"
@@ -194,6 +203,8 @@ net.ipv4.tcp_tw_reuse = 1
 net.ipv4.tcp_fin_timeout = 30
 net.core.somaxconn = 8192
 net.ipv4.tcp_max_tw_buckets = 2000000
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
 
 # ============================================================================
 # MEMORY MANAGEMENT
@@ -269,6 +280,8 @@ else
     cat > "$WATCHDOG_CONF" << 'EOF'
 blacklist sp5100_tco
 blacklist iTCO_wdt
+blacklist iTCO_vendor_support
+blacklist wdat_wdt
 EOF
     ok "Created $WATCHDOG_CONF"
     NEED_REINITRAMFS=1
@@ -321,7 +334,7 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -c 'for iface in $(ip link show | grep "^[0-9]" | grep -oP "(?<=: )\w+" | grep -v lo); do /usr/bin/tc qdisc replace dev $iface root fq_codel; done'
+ExecStart=/usr/bin/bash -c 'for iface in $(ip -o link show | awk -F": " "{print $2}" | grep -v lo); do /usr/bin/tc qdisc replace dev $iface root fq_codel 2>/dev/null || true; done'
 RemainAfterExit=yes
 
 [Install]
@@ -334,6 +347,13 @@ fi
 
 # --- STEP 7: PCI Latency Tuning ---
 header "STEP 7: PCI Latency Tuning"
+if ! command -v setpci &>/dev/null; then
+    info "Installing pciutils..."
+    pacman -S --noconfirm pciutils
+else
+    skip "pciutils package"
+fi
+
 PCI_SCRIPT="/usr/bin/pci-latency"
 if [[ -f "$PCI_SCRIPT" ]]; then
     skip "$PCI_SCRIPT"
@@ -393,6 +413,16 @@ else
     ok "Added $REAL_USER to audio group (re-login required)"
 fi
 
+# --- STEP 9: Zen Kernel ---
+header "STEP 9: Zen Kernel Installation"
+if ! pacman -Qi linux-zen &>/dev/null; then
+    info "Installing Zen Kernel and Headers..."
+    pacman -S --noconfirm linux-zen linux-zen-headers
+    NEED_GRUB=1
+else
+    skip "Zen Kernel is already installed"
+fi
+
 # --- Regenerate initramfs if watchdog blacklist changed ---
 if [[ $NEED_REINITRAMFS -eq 1 ]]; then
     header "Regenerating initramfs"
@@ -416,12 +446,13 @@ fi
 header "SUMMARY"
 echo -e "  ${GREEN}✅ Sysctl tuning${NC}          (Memory + CPU + Network)"
 echo -e "  ${GREEN}✅ ZRAM compression${NC}       (Virtual RAM expansion)"
-echo -e "  ${GREEN}✅ I/O scheduler${NC}          (${NVME_DEV} latency reduction)"
+echo -e "  ${GREEN}✅ I/O scheduler${NC}          ($(echo $PHYSICAL_DEVS | tr '\n' ' ') latency reduction)"
 echo -e "  ${GREEN}✅ Watchdog disabled${NC}      (CPU interrupt reduction)"
 echo -e "  ${GREEN}✅ THP configured${NC}         (Memory efficiency)"
 echo -e "  ${GREEN}✅ Network QoS${NC}            (fq_codel)"
 echo -e "  ${GREEN}✅ PCI latency${NC}            (Device responsiveness)"
 echo -e "  ${GREEN}✅ Audio group access${NC}     (Real-time performance)"
+echo -e "  ${GREEN}✅ Zen Kernel${NC}             (Latency-optimized scheduler)"
 echo ""
 
 if [[ $NEED_REINITRAMFS -eq 1 || $NEED_GRUB -eq 1 ]] || ! grep -q zram /proc/swaps; then

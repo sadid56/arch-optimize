@@ -1,0 +1,21 @@
+pkgbase = artune-git
+	pkgdesc = Automated script to optimize Arch Linux for low-latency desktop use, gaming, and real-time audio workloads (artune)
+	pkgver = r7.gf2925ab
+	pkgrel = 1
+	url = https://github.com/sadid56/artune
+	arch = any
+	license = GPL3
+	makedepends = git
+	depends = bash
+	depends = zram-generator
+	depends = iproute2
+	depends = pciutils
+	depends = linux-zen
+	depends = linux-zen-headers
+	depends = ananicy-cpp
+	provides = artune
+	conflicts = artune
+	source = git+https://github.com/sadid56/artune.git
+	sha256sums = SKIP
+
+pkgname = artune-git

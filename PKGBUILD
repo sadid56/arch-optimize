@@ -1,7 +1,7 @@
 # Maintainer: Sadid <your-email@example.com>
 pkgname=artune-git
-_pkgname=artune-git
-pkgver=r4.gda67467
+_pkgname=artune
+pkgver=r7.gf2925ab
 pkgrel=1
 pkgdesc="Automated script to optimize Arch Linux for low-latency desktop use, gaming, and real-time audio workloads (artune)"
 arch=('any')
@@ -23,7 +23,7 @@ package() {
   cd "$srcdir/$_pkgname"
   
   # Install the main executable script
-  install -Dm755 artune "$pkgdir/usr/bin/artune"
+  install -Dm755 artune.sh "$pkgdir/usr/bin/artune"
   
   # Install module scripts
   install -d "$pkgdir/usr/share/artune/modules"

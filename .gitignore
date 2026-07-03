@@ -1,0 +1,9 @@
+# Arch Linux package build artifacts
+*.pkg.tar.zst
+*.pkg.tar.xz
+*.pkg.tar.gz
+pkg/
+src/
+
+# Cloned source directory from makepkg build
+artune/

@@ -1,0 +1,12 @@
+[Unit]
+Description=Set network queue discipline to fq_codel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c 'for iface in $(ip -o link show | awk -F": " "{print $2}" | grep -v lo); do /usr/bin/tc qdisc replace dev $iface root fq_codel 2>/dev/null || true; done'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

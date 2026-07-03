@@ -1,0 +1,11 @@
+[Unit]
+Description=Set PCI latency timers
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/pci-latency
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

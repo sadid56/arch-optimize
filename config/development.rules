@@ -1,0 +1,23 @@
+# Rules for development tools (Compilers, builders, packaging managers)
+{ "name": "gcc", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "g++", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "clang", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "clang++", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "rustc", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "cargo", "nice": 10, "ioclass": "best-effort", "ionice": 5 }
+{ "name": "go", "nice": 10, "ioclass": "best-effort", "ionice": 5 }
+{ "name": "ninja", "nice": 15, "ioclass": "best-effort", "ionice": 7 }
+{ "name": "make", "nice": 10, "ioclass": "best-effort", "ionice": 5 }
+{ "name": "cmake", "nice": 10 }
+{ "name": "node", "nice": 10 }
+{ "name": "npm", "nice": 10 }
+{ "name": "yarn", "nice": 10 }
+{ "name": "pnpm", "nice": 10 }
+
+# Rules for development environments (IDEs/Editors)
+{ "name": "code", "nice": -2 }
+{ "name": "nvim", "nice": -4 }
+{ "name": "emacs", "nice": -4 }
+{ "name": "idea", "nice": -2 }
+{ "name": "webstorm", "nice": -2 }
+{ "name": "pycharm", "nice": -2 }

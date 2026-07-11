@@ -17,7 +17,109 @@ header(){ echo ""; echo -e "${BOLD}${GREEN}=== $1 ===${NC}"; }
 
 NEED_REBOOT=0
 NEED_REINITRAMFS=0
-NEED_GRUB=0
+NEED_BOOTLOADER_UPDATE=0
+
+# ---------- Bootloader detection and helpers ----------
+detect_bootloader() {
+    if bootctl is-installed &>/dev/null; then
+        echo "systemd-boot"
+    elif [[ -f /boot/grub/grub.cfg || -f /etc/default/grub ]]; then
+        echo "grub"
+    elif [[ -d /boot/loader/entries || -d /efi/loader/entries || -d /boot/efi/loader/entries ]]; then
+        echo "systemd-boot"
+    else
+        echo "unknown"
+    fi
+}
+
+BOOTLOADER=$(detect_bootloader)
+
+get_systemd_boot_path() {
+    local esp_path=""
+    if command -v bootctl &>/dev/null; then
+        esp_path=$(bootctl -p 2>/dev/null || bootctl --print-esp-path 2>/dev/null || true)
+    fi
+    if [[ -z "$esp_path" ]]; then
+        for path in /boot /efi /boot/efi; do
+            if [[ -d "$path/loader/entries" ]]; then
+                esp_path="$path"
+                break
+            fi
+        done
+    fi
+    echo "$esp_path"
+}
+
+create_systemd_boot_zen_entry() {
+    local esp=$(get_systemd_boot_path)
+    if [[ -z "$esp" ]]; then
+        return 0
+    fi
+    local entries_dir="$esp/loader/entries"
+    if [[ ! -d "$entries_dir" ]]; then
+        return 0
+    fi
+
+    # Find a source configuration file (prefer default from loader.conf)
+    local src_entry=""
+    if [[ -f "$esp/loader/loader.conf" ]]; then
+        local def_val=$(grep -i '^default' "$esp/loader/loader.conf" | awk '{print $2}' || true)
+        if [[ -n "$def_val" ]]; then
+            if [[ "$def_val" != *.conf ]]; then
+                def_val="${def_val}.conf"
+            fi
+            if [[ -f "$entries_dir/$def_val" ]]; then
+                src_entry="$entries_dir/$def_val"
+            fi
+        fi
+    fi
+
+    # Fallback to any non-zen, non-fallback .conf if default wasn't found
+    if [[ -z "$src_entry" ]]; then
+        for f in "$entries_dir"/*.conf; do
+            if [[ -f "$f" && "$f" != *zen* && "$f" != *fallback* ]]; then
+                src_entry="$f"
+                break
+            fi
+        done
+    fi
+
+    if [[ -n "$src_entry" && -f "$src_entry" ]]; then
+        local zen_entry="$entries_dir/arch-zen.conf"
+        local zen_fallback="$entries_dir/arch-zen-fallback.conf"
+        
+        if [[ ! -f "$zen_entry" ]]; then
+            cp "$src_entry" "$zen_entry"
+            sed -i 's/vmlinuz-linux/vmlinuz-linux-zen/g' "$zen_entry"
+            sed -i 's/initramfs-linux.img/initramfs-linux-zen.img/g' "$zen_entry"
+            sed -i 's/^title.*/& (Zen)/' "$zen_entry"
+            ok "Created systemd-boot entry: $zen_entry"
+        fi
+        
+        if [[ ! -f "$zen_fallback" ]]; then
+            local src_fallback=""
+            for f in "$entries_dir"/*.conf; do
+                if [[ -f "$f" && "$f" == *fallback* && "$f" != *zen* ]]; then
+                    src_fallback="$f"
+                    break
+                fi
+            done
+            if [[ -n "$src_fallback" ]]; then
+                cp "$src_fallback" "$zen_fallback"
+                sed -i 's/vmlinuz-linux/vmlinuz-linux-zen/g' "$zen_fallback"
+                sed -i 's/initramfs-linux-fallback.img/initramfs-linux-zen-fallback.img/g' "$zen_fallback"
+                sed -i 's/^title.*/& (Zen)/' "$zen_fallback"
+            else
+                cp "$zen_entry" "$zen_fallback"
+                sed -i 's/initramfs-linux-zen.img/initramfs-linux-zen-fallback.img/g' "$zen_fallback"
+                sed -i 's/(Zen)/(Zen fallback)/g' "$zen_fallback"
+            fi
+            ok "Created systemd-boot entry: $zen_fallback"
+        fi
+    else
+        warn "Could not find a base systemd-boot entry to generate Zen kernel entries from"
+    fi
+}
 
 # ---------- Root check ----------
 if [[ $EUID -ne 0 ]]; then
@@ -78,12 +180,14 @@ rollback() {
     systemctl daemon-reload
     udevadm control --reload 2>/dev/null || true
 
-    if [[ $NEED_GRUB -eq 1 ]]; then
-        if command -v grub-mkconfig &>/dev/null; then
-            grub-mkconfig -o /boot/grub/grub.cfg
-            ok "Regenerated grub.cfg"
-        else
-            warn "grub-mkconfig not found — regenerate your bootloader config manually"
+    if [[ $NEED_BOOTLOADER_UPDATE -eq 1 ]]; then
+        if [[ "$BOOTLOADER" == "grub" ]]; then
+            if command -v grub-mkconfig &>/dev/null; then
+                grub-mkconfig -o /boot/grub/grub.cfg
+                ok "Regenerated grub.cfg"
+            else
+                warn "grub-mkconfig not found — regenerate your bootloader config manually"
+            fi
         fi
     fi
 
@@ -147,13 +251,15 @@ if [[ $NEED_REINITRAMFS -eq 1 ]]; then
     ok "initramfs regenerated"
 fi
 
-if [[ $NEED_GRUB -eq 1 ]]; then
-    header "Regenerating GRUB config"
-    if command -v grub-mkconfig &>/dev/null; then
-        grub-mkconfig -o /boot/grub/grub.cfg
-        ok "grub.cfg regenerated"
-    else
-        warn "grub-mkconfig not found — update your bootloader config manually"
+if [[ $NEED_BOOTLOADER_UPDATE -eq 1 ]]; then
+    if [[ "$BOOTLOADER" == "grub" ]]; then
+        header "Regenerating GRUB config"
+        if command -v grub-mkconfig &>/dev/null; then
+            grub-mkconfig -o /boot/grub/grub.cfg
+            ok "grub.cfg regenerated"
+        else
+            warn "grub-mkconfig not found — update your bootloader config manually"
+        fi
     fi
 fi
 
@@ -173,7 +279,7 @@ echo -e "  ${GREEN}✅ Zen Kernel${NC}             (Latency-optimized scheduler)
 echo -e "  ${GREEN}✅ Ananicy-cpp${NC}            (Auto-nice priority daemon)"
 echo ""
 
-if [[ $NEED_REINITRAMFS -eq 1 || $NEED_GRUB -eq 1 ]] || ! grep -q zram /proc/swaps; then
+if [[ $NEED_REINITRAMFS -eq 1 || $NEED_BOOTLOADER_UPDATE -eq 1 ]] || ! grep -q zram /proc/swaps; then
     echo -e "${BOLD}${YELLOW}A reboot is recommended to fully apply changes.${NC}"
     echo -e "  Run: ${CYAN}sudo reboot${NC}"
 else

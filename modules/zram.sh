@@ -11,7 +11,12 @@ apply_zram() {
     fi
 
     if [[ -f "$ZRAM_CONF" ]]; then
-        skip "$ZRAM_CONF"
+        if cmp -s "$CONFIG_DIR/zram-generator.conf" "$ZRAM_CONF"; then
+            skip "$ZRAM_CONF"
+        else
+            cp -f "$CONFIG_DIR/zram-generator.conf" "$ZRAM_CONF"
+            ok "Updated $ZRAM_CONF"
+        fi
     else
         if [[ -f "$CONFIG_DIR/zram-generator.conf" ]]; then
             cp -f "$CONFIG_DIR/zram-generator.conf" "$ZRAM_CONF"

@@ -8,7 +8,7 @@ apply_zen_kernel() {
     if ! pacman -Qi linux-zen &>/dev/null; then
         info "Installing Zen Kernel..."
         pacman -S --noconfirm linux-zen
-        NEED_GRUB=1
+        NEED_BOOTLOADER_UPDATE=1
         installed_zen=1
     fi
     
@@ -20,6 +20,10 @@ apply_zen_kernel() {
     
     if [[ $installed_zen -eq 0 && $installed_headers -eq 0 ]]; then
         skip "Zen Kernel and Headers are already installed"
+    fi
+
+    if [[ $installed_zen -eq 1 && "$BOOTLOADER" == "systemd-boot" ]]; then
+        create_systemd_boot_zen_entry
     fi
 }
 
